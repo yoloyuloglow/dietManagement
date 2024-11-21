@@ -1,4 +1,5 @@
 import 'package:best_flutter_ui_templates/fitness_app/my_diary/text_record_dialog.dart';
+import 'package:best_flutter_ui_templates/fitness_app/my_diary/water_dialog.dart';
 import 'package:best_flutter_ui_templates/fitness_app/ui_view/body_measurement.dart';
 import 'package:best_flutter_ui_templates/fitness_app/ui_view/glass_view.dart';
 import 'package:best_flutter_ui_templates/fitness_app/ui_view/mediterranean_diet_view.dart';
@@ -8,6 +9,7 @@ import 'package:best_flutter_ui_templates/fitness_app/my_diary/meals_list_view.d
 import 'package:best_flutter_ui_templates/fitness_app/my_diary/water_view.dart';
 import 'package:flutter/material.dart';
 
+import 'body_info_dialog.dart';
 import 'food_record_dialog.dart';
 import 'meal_selection_dialog.dart';
 
@@ -29,6 +31,13 @@ class _MyDiaryScreenState extends State<MyDiaryScreen>
 
   // 현재 선택된 날짜
   DateTime selectedDate = DateTime.now();
+
+  // 날짜를 "00월 00일" 형식으로 반환하는 메소드
+  String _getFormattedDate(DateTime date) {
+    final String month = date.month.toString().padLeft(2, '0'); // 두 자리 숫자
+    final String day = date.day.toString().padLeft(2, '0');     // 두 자리 숫자
+    return "$month월 $day일";
+  }
 
   @override
   void initState() {
@@ -83,6 +92,7 @@ class _MyDiaryScreenState extends State<MyDiaryScreen>
       initialDate: selectedDate,
       firstDate: DateTime(2000),
       lastDate: DateTime(2101),
+      locale: const Locale('ko'), // 한국어 설정
       builder: (BuildContext context, Widget? child) {
         return Theme(
           data: ThemeData.light().copyWith(
@@ -104,6 +114,7 @@ class _MyDiaryScreenState extends State<MyDiaryScreen>
       });
     }
   }
+
   void addAllListData() {
     const int count = 9;
 
@@ -207,26 +218,33 @@ class _MyDiaryScreenState extends State<MyDiaryScreen>
             ),
             Row(
               children: [
-                Text(
-                  "Edit",
-                  style: TextStyle(
-                    fontFamily: FitnessAppTheme.fontName,
-                    fontWeight: FontWeight.normal,
-                    fontSize: 16,
-                    letterSpacing: 0.5,
-                    color: FitnessAppTheme.nearlyDarkBlue,
+                TextButton(
+                  onPressed: _showBodyInfoDialog, // 다이얼로그 호출
+                  child: Row(
+                    children: [
+                      Text(
+                        "Edit",
+                        style: TextStyle(
+                          fontFamily: FitnessAppTheme.fontName,
+                          fontWeight: FontWeight.normal,
+                          fontSize: 16,
+                          letterSpacing: 0.5,
+                          color: FitnessAppTheme.nearlyDarkBlue,
+                        ),
+                      ),
+                      SizedBox(width: 8),
+                      Icon(
+                        Icons.arrow_forward,
+                        color: FitnessAppTheme.darkText,
+                        size: 18,
+                      ),
+                    ],
                   ),
-                ),
-                SizedBox(width: 8), // Edit와 화살표 간 간격 설정
-                Icon(
-                  Icons.arrow_forward, // 추가된 화살표 아이콘
-                  color: FitnessAppTheme.darkText,
-                  size: 18,
                 ),
               ],
             ),
           ],
-        ),
+        )
       ),
     );
     listViews.add(
@@ -239,48 +257,55 @@ class _MyDiaryScreenState extends State<MyDiaryScreen>
       ),
     );
     listViews.add(
-      Padding(
-        padding: const EdgeInsets.only(right: 15.0), // 오른쪽 여백만 추가
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: TitleView(
-                titleTxt: '물 섭취',
-                subTxt: '',
-                animation: Tween<double>(begin: 0.0, end: 1.0).animate(
-                  CurvedAnimation(
-                    parent: widget.animationController!,
-                    curve: Interval((1 / count) * 6, 1.0, curve: Curves.fastOutSlowIn),
+        Padding(
+          padding: const EdgeInsets.only(right: 15.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: TitleView(
+                  titleTxt: '물 섭취',
+                  subTxt: '',
+                  animation: Tween<double>(begin: 0.0, end: 1.0).animate(
+                    CurvedAnimation(
+                      parent: widget.animationController!,
+                      curve: Interval((1 / count) * 6, 1.0, curve: Curves.fastOutSlowIn),
+                    ),
                   ),
+                  animationController: widget.animationController!,
                 ),
-                animationController: widget.animationController!,
               ),
-            ),
-            Row(
-              children: [
-                Text(
-                  "Edit",
-                  style: TextStyle(
-                    fontFamily: FitnessAppTheme.fontName,
-                    fontWeight: FontWeight.normal,
-                    fontSize: 16,
-                    letterSpacing: 0.5,
-                    color: FitnessAppTheme.nearlyDarkBlue,
+              Row(
+                children: [
+                  TextButton(
+                    onPressed: _showWaterDialog, // WaterDialog 연결
+                    child: Row(
+                      children: [
+                        Text(
+                          "Edit",
+                          style: TextStyle(
+                            fontFamily: FitnessAppTheme.fontName,
+                            fontWeight: FontWeight.normal,
+                            fontSize: 16,
+                            letterSpacing: 0.5,
+                            color: FitnessAppTheme.nearlyDarkBlue,
+                          ),
+                        ),
+                        SizedBox(width: 8),
+                        Icon(
+                          Icons.arrow_forward,
+                          color: FitnessAppTheme.darkText,
+                          size: 18,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                SizedBox(width: 8), // Edit와 화살표 간 간격 설정
-                Icon(
-                  Icons.arrow_forward, // 추가된 화살표 아이콘
-                  color: FitnessAppTheme.darkText,
-                  size: 18,
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
-      ),
-    );
+      );
 
 
     listViews.add(
@@ -433,7 +458,7 @@ class _MyDiaryScreenState extends State<MyDiaryScreen>
                                       ),
                                     ),
                                     Text(
-                                      '${selectedDate.day} ${_getMonthName(selectedDate.month)}', // 선택된 날짜 표시
+                                      _getFormattedDate(selectedDate), // 날짜 표시 (00월 00일)
                                       textAlign: TextAlign.left,
                                       style: TextStyle(
                                         fontFamily: FitnessAppTheme.fontName,
@@ -532,6 +557,7 @@ class _MyDiaryScreenState extends State<MyDiaryScreen>
           onSearch: (String searchText) {
             Navigator.pop(context);
             // 검색 동작
+            // 검색 동작
             print("검색어 입력: $searchText");
           },
         );
@@ -575,13 +601,48 @@ class _MyDiaryScreenState extends State<MyDiaryScreen>
       },
     );
   }
-
-  // 월 이름 가져오기
-  String _getMonthName(int month) {
-    const monthNames = [
-      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-    ];
-    return monthNames[month - 1];
+  void _showBodyInfoDialog() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true, // 스크롤 가능
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(16),
+          topRight: Radius.circular(16),
+        ),
+      ),
+      builder: (BuildContext context) {
+        return BodyInfoDialog(
+          onSave: (String height, String weight, String gender, String age) {
+            print("키: $height cm, 몸무게: $weight kg, 성별: $gender, 나이: $age");
+            // 저장 로직 추가
+          },
+        );
+      },
+    );
   }
+  void _showWaterDialog() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(16),
+          topRight: Radius.circular(16),
+        ),
+      ),
+      builder: (BuildContext context) {
+        return WaterDialog(
+          currentIntake: 1000, // 기본 섭취량
+          goalIntake: 2000, // 기본 목표 섭취량
+          onSave: (currentIntake, goalIntake) {
+            // 저장 로직 처리
+            print("섭취량: $currentIntake ml");
+            print("목표 섭취량: $goalIntake ml");
+          },
+        );
+      },
+    );
+  }
+
 }
