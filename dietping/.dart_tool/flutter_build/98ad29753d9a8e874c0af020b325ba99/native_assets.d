@@ -1,0 +1,1 @@
+ D:\\School\\2024\\2\\Android\ Project\\best_flutter_ui_templates\\.dart_tool\\flutter_build\\98ad29753d9a8e874c0af020b325ba99\\native_assets.yaml: 
