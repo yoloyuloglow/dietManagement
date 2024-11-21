@@ -12,8 +12,8 @@
 12         to allow setting breakpoints, to provide hot reload, etc.
 13    -->
 14    <uses-permission android:name="android.permission.INTERNET" />
-14-->C:\Users\001wl\AndroidStudioProjects\dietping\android\app\src\debug\AndroidManifest.xml:6:5-66
-14-->C:\Users\001wl\AndroidStudioProjects\dietping\android\app\src\debug\AndroidManifest.xml:6:22-64
+14-->D:\sjh\three\android\project\dietManagement\dietManagement\dietping\android\app\src\debug\AndroidManifest.xml:6:5-66
+14-->D:\sjh\three\android\project\dietManagement\dietManagement\dietping\android\app\src\debug\AndroidManifest.xml:6:22-64
 15    <!--
 16     io.flutter.app.FlutterApplication is an android.app.Application that
 17         calls FlutterMain.startInitialization(this); in its onCreate method.
@@ -24,7 +24,7 @@
 22    <application
 23        android:name="android.app.Application"
 24        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
-24-->[androidx.core:core:1.6.0] C:\Users\001wl\.gradle\caches\transforms-3\acbce933e4b464a5224ed377a62db1f5\transformed\core-1.6.0\AndroidManifest.xml:24:18-86
+24-->[androidx.core:core:1.6.0] C:\Users\Owner\.gradle\caches\transforms-3\acbce933e4b464a5224ed377a62db1f5\transformed\core-1.6.0\AndroidManifest.xml:24:18-86
 25        android:debuggable="true"
 26        android:icon="@mipmap/ic_launcher"
 27        android:label="Best Flutter UI Templates" >
@@ -73,17 +73,17 @@
 70            android:value="2" />
 71
 72        <uses-library
-72-->[androidx.window:window:1.0.0-beta04] C:\Users\001wl\.gradle\caches\transforms-3\49bc944d29f70d45aa5add8e43e3247e\transformed\jetified-window-1.0.0-beta04\AndroidManifest.xml:25:9-27:40
+72-->[androidx.window:window:1.0.0-beta04] C:\Users\Owner\.gradle\caches\transforms-3\49bc944d29f70d45aa5add8e43e3247e\transformed\jetified-window-1.0.0-beta04\AndroidManifest.xml:25:9-27:40
 73            android:name="androidx.window.extensions"
-73-->[androidx.window:window:1.0.0-beta04] C:\Users\001wl\.gradle\caches\transforms-3\49bc944d29f70d45aa5add8e43e3247e\transformed\jetified-window-1.0.0-beta04\AndroidManifest.xml:26:13-54
+73-->[androidx.window:window:1.0.0-beta04] C:\Users\Owner\.gradle\caches\transforms-3\49bc944d29f70d45aa5add8e43e3247e\transformed\jetified-window-1.0.0-beta04\AndroidManifest.xml:26:13-54
 74            android:required="false" />
-74-->[androidx.window:window:1.0.0-beta04] C:\Users\001wl\.gradle\caches\transforms-3\49bc944d29f70d45aa5add8e43e3247e\transformed\jetified-window-1.0.0-beta04\AndroidManifest.xml:27:13-37
+74-->[androidx.window:window:1.0.0-beta04] C:\Users\Owner\.gradle\caches\transforms-3\49bc944d29f70d45aa5add8e43e3247e\transformed\jetified-window-1.0.0-beta04\AndroidManifest.xml:27:13-37
 75        <uses-library
-75-->[androidx.window:window:1.0.0-beta04] C:\Users\001wl\.gradle\caches\transforms-3\49bc944d29f70d45aa5add8e43e3247e\transformed\jetified-window-1.0.0-beta04\AndroidManifest.xml:28:9-30:40
+75-->[androidx.window:window:1.0.0-beta04] C:\Users\Owner\.gradle\caches\transforms-3\49bc944d29f70d45aa5add8e43e3247e\transformed\jetified-window-1.0.0-beta04\AndroidManifest.xml:28:9-30:40
 76            android:name="androidx.window.sidecar"
-76-->[androidx.window:window:1.0.0-beta04] C:\Users\001wl\.gradle\caches\transforms-3\49bc944d29f70d45aa5add8e43e3247e\transformed\jetified-window-1.0.0-beta04\AndroidManifest.xml:29:13-51
+76-->[androidx.window:window:1.0.0-beta04] C:\Users\Owner\.gradle\caches\transforms-3\49bc944d29f70d45aa5add8e43e3247e\transformed\jetified-window-1.0.0-beta04\AndroidManifest.xml:29:13-51
 77            android:required="false" />
-77-->[androidx.window:window:1.0.0-beta04] C:\Users\001wl\.gradle\caches\transforms-3\49bc944d29f70d45aa5add8e43e3247e\transformed\jetified-window-1.0.0-beta04\AndroidManifest.xml:30:13-37
+77-->[androidx.window:window:1.0.0-beta04] C:\Users\Owner\.gradle\caches\transforms-3\49bc944d29f70d45aa5add8e43e3247e\transformed\jetified-window-1.0.0-beta04\AndroidManifest.xml:30:13-37
 78    </application>
 79
 80</manifest>
