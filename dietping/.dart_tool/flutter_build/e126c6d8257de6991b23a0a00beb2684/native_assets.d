@@ -1,0 +1,1 @@
+ C:\\Users\\001wl\\Downloads\\best_flutter_ui_templates\\.dart_tool\\flutter_build\\e126c6d8257de6991b23a0a00beb2684\\native_assets.yaml: 
