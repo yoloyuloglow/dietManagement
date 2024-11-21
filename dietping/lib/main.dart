@@ -13,6 +13,7 @@ import 'introduction_animation/components/signup_view.dart';
 import 'navigation_home_screen.dart';
 import 'introduction_animation/introduction_animation_screen.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 // void main() async {
 //   WidgetsFlutterBinding.ensureInitialized();
@@ -55,15 +56,22 @@ class MyApp extends StatelessWidget {
     ));
     return MaterialApp(
       title: 'Flutter UI',
+      localizationsDelegates: [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ],
+      supportedLocales: [
+        const Locale('ko', 'KR'),
+      ],
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.blue,
         textTheme: AppTheme.textTheme,
         platform: TargetPlatform.iOS,
       ),
-      // home: IntroductionAnimationScreen(),
+      home: IntroductionAnimationScreen(),
       // home: LoginScreen(),
-      home: HomeScreen(),
+      // home: HomeScreen(),
       // home: DesignCourseHomeScreen(),
     );
   }

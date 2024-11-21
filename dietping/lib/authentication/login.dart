@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../cubit/auth_cubit.dart';
+import '../fitness_app/fitness_app_home_screen.dart';
 import '../home_screen.dart';
 import './signup.dart';
 import '../widgets/custom_checkbox.dart';
@@ -97,7 +98,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     Navigator.pushAndRemoveUntil(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => MyHomePage(),
+                          builder: (context) => HomeScreen(),
                         ),
                             (route) => false);
                   } else if (state is AuthFailed) {
