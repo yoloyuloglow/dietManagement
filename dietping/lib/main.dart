@@ -15,14 +15,6 @@ import 'introduction_animation/introduction_animation_screen.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_localizations/flutter_localizations.dart';
 
-// void main() async {
-//   WidgetsFlutterBinding.ensureInitialized();
-//   await SystemChrome.setPreferredOrientations(<DeviceOrientation>[
-//     DeviceOrientation.portraitUp,
-//     DeviceOrientation.portraitDown
-//   ]).then((_) => runApp(MyApp()));
-// }
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SystemChrome.setPreferredOrientations(<DeviceOrientation>[
@@ -69,9 +61,9 @@ class MyApp extends StatelessWidget {
         textTheme: AppTheme.textTheme,
         platform: TargetPlatform.iOS,
       ),
-      home: IntroductionAnimationScreen(),
+      // home: IntroductionAnimationScreen(),
       // home: LoginScreen(),
-      // home: HomeScreen(),
+      home: HomeScreen(),
       // home: DesignCourseHomeScreen(),
     );
   }

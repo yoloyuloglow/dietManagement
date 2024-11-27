@@ -39,6 +39,7 @@ dependencies:
     google_fonts: ^4.0.4
     fluttertoast: any
     provider: ^6.1.2
+    image_picker: ^0.8.8+5
     flutter_localizations:
         sdk: flutter
 

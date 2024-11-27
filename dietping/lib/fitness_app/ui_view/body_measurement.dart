@@ -1,3 +1,4 @@
+// 신체 정보 보여주는 부분
 import 'package:best_flutter_ui_templates/fitness_app/fitness_app_theme.dart';
 import 'package:flutter/material.dart';
 
