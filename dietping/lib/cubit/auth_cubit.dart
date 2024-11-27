@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ffi';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
@@ -21,6 +22,10 @@ class AuthCubit extends Cubit<AuthState> {
     required var password,
     required var nickname,
     required int age,
+    required var gender,
+    required double kcal,
+    required double height,
+    required double weight
   }) async {
     try {
       emit(AuthLoading());
@@ -35,6 +40,10 @@ class AuthCubit extends Cubit<AuthState> {
           password: password,
           nickname: nickname,
           age: age,
+          gender: gender,
+          kcal: kcal,
+          height: height,
+          weight: weight
         );
         emit(AuthSuccess(user)); // 성공 시 상태 전환
       } else {
@@ -66,10 +75,14 @@ class AuthCubit extends Cubit<AuthState> {
     required var password,
     required var nickname,
     required int age,
+    required var gender,
+    required double kcal,
+    required double height,
+    required double weight
   }) async {
     try {
       emit(AuthLoading());
-      User user = await AuthService().signUp(id: id, name: name, email: email, password: password, nickname:nickname, age:age);
+      User user = await AuthService().signUp(id: id, name: name, email: email, password: password, nickname:nickname, age:age,gender: gender, kcal: kcal, height: height, weight: weight);
       emit(AuthSuccess(user));
     } catch (e) {
       emit(AuthFailed(e.toString()));

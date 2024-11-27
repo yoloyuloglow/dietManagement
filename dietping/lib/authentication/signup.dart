@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ffi';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
@@ -15,6 +16,7 @@ import '../widgets/custom_checkbox.dart';
 import '../widgets/input_field.dart';
 import '../widgets/primary_button.dart';
 import 'login.dart';
+import '../fitness_app/fitness_app_home_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   @override
@@ -28,7 +30,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController passwordController = TextEditingController(text: '');
   final TextEditingController nicknameController = TextEditingController(text: '');
   final TextEditingController ageController = TextEditingController(text: '');
+  //final TextEditingController genderController = TextEditingController(text: '');
+  final TextEditingController kcalController = TextEditingController(text: '');
+  final TextEditingController heightController = TextEditingController(text: '');
+  final TextEditingController weightController = TextEditingController(text: '');
 
+  String? selectedGender;
   bool passwordVisible = false;
   bool isChecked = false;
 
@@ -58,6 +65,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
           var ageInput = ageController.text.trim();
           int age;
 
+          var kcalInput = kcalController.text.trim();
+          var heightInput = heightController.text.trim();
+          var weightInput = weightController.text.trim();
+          double kcal = double.parse(kcalInput);
+          double height = double.parse(heightInput);
+          double weight = double.parse(weightInput);
+
           // 나이 입력 값이 비어있지 않고 숫자인지 체크
           if (ageInput.isNotEmpty) {
             // 정규 표현식을 사용하여 숫자인지 확인
@@ -73,6 +87,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             // 나이가 입력되지 않은 경우 기본값 설정
             age = 0; // 혹은 원하는 기본값 설정
           }
+
           context.read<AuthCubit>().signUp(
             id: userIdController.text.trim (),
             name: userNameController.text.trim(),
@@ -80,6 +95,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
             password: passwordController.text.trim(),
             nickname: nicknameController.text.trim(),
             age: age ?? 0,
+            gender: selectedGender ?? "",
+            kcal : kcal,
+            height: height,
+            weight: weight
     );
         }
       }
@@ -122,7 +141,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     SizedBox(height: 32),
                     InputField(
-                      hintText: 'Name',
+                      hintText: '이름',
                       controller: userNameController,
                       suffixIcon: SizedBox(),
                     ),
@@ -148,14 +167,60 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     SizedBox(height: 32),
                     InputField(
-                      hintText: 'Nickname',
+                      hintText: '닉네임',
                       controller: nicknameController,
                       suffixIcon: SizedBox(),
                     ),
                     SizedBox(height: 32),
                     InputField(
-                      hintText: 'Age',
+                      hintText: '나이',
                       controller: ageController,
+                      suffixIcon: SizedBox(),
+                    ),
+                    SizedBox(height: 32),
+                    // 성별 선택 드롭다운 메뉴
+                    DropdownButtonFormField<String>(
+                      value: selectedGender,
+                      items: [
+                        DropdownMenuItem(
+                          value: "남자",
+                          child: Text("남자"),
+                        ),
+                        DropdownMenuItem(
+                          value: "여자",
+                          child: Text("여자"),
+                        ),
+                      ],
+                      onChanged: (value) {
+                        setState(() {
+                          selectedGender = value;
+                        });
+                      },
+                      decoration: InputDecoration(
+                        hintText: "성별을 선택하세요",
+                        contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.grey),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 32),
+                    InputField(
+                      hintText: '목표 칼로리',
+                      controller: kcalController,
+                      suffixIcon: SizedBox(),
+                    ),
+                    SizedBox(height: 32),
+                    InputField(
+                      hintText: '키',
+                      controller: heightController,
+                      suffixIcon: SizedBox(),
+                    ),
+                    SizedBox(height: 32),
+                    InputField(
+                      hintText: '몸무게',
+                      controller: weightController,
                       suffixIcon: SizedBox(),
                     ),
                     SizedBox(height: 32),
@@ -208,10 +273,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 listener: (context, state) {
                   if (state is AuthSuccess) {
                     Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(builder: (context) => MyHomePage()),
-                          (route) => false,
-                    );
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => LoginScreen(),
+                        ),
+                            (route) => false);
                   } else if (state is AuthFailed) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
