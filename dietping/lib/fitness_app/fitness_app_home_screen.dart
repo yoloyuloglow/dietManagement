@@ -1,3 +1,5 @@
+// 이게 메인화면이라고 보면 됨
+
 import 'package:best_flutter_ui_templates/fitness_app/models/tabIcon_data.dart';
 import 'package:flutter/material.dart';
 import '../design_course/category_list_view.dart';

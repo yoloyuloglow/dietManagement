@@ -1,3 +1,5 @@
+// 식단 기록한 거 보여주는 부분
+
 class MealsListData {
   MealsListData({
     this.imagePath = '',

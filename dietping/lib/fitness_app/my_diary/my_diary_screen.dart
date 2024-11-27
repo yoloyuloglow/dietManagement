@@ -1,17 +1,16 @@
-import 'package:best_flutter_ui_templates/fitness_app/my_diary/text_record_dialog.dart';
+import 'package:best_flutter_ui_templates/fitness_app/my_diary/diary_record_dialog.dart';
 import 'package:best_flutter_ui_templates/fitness_app/my_diary/water_dialog.dart';
 import 'package:best_flutter_ui_templates/fitness_app/ui_view/body_measurement.dart';
-import 'package:best_flutter_ui_templates/fitness_app/ui_view/glass_view.dart';
 import 'package:best_flutter_ui_templates/fitness_app/ui_view/mediterranean_diet_view.dart';
 import 'package:best_flutter_ui_templates/fitness_app/ui_view/title_view.dart';
 import 'package:best_flutter_ui_templates/fitness_app/fitness_app_theme.dart';
 import 'package:best_flutter_ui_templates/fitness_app/my_diary/meals_list_view.dart';
 import 'package:best_flutter_ui_templates/fitness_app/my_diary/water_view.dart';
 import 'package:flutter/material.dart';
+// import 'package:image_picker/image_picker.dart';
 
 import 'body_info_dialog.dart';
-import 'food_record_dialog.dart';
-import 'meal_selection_dialog.dart';
+import 'food_search_dialog.dart';
 
 class MyDiaryScreen extends StatefulWidget {
   const MyDiaryScreen({Key? key, this.animationController}) : super(key: key);
@@ -158,7 +157,7 @@ class _MyDiaryScreenState extends State<MyDiaryScreen>
             Row(
               children: [
                 TextButton(
-                  onPressed: _showMealSelectionDialog, // Dialog 표시 함수 연결
+                  onPressed: _showTextRecordDialog, // Dialog 표시 함수 연결
                   child: Row(
                     children: [
                       Text(
@@ -502,7 +501,7 @@ class _MyDiaryScreenState extends State<MyDiaryScreen>
       ],
     );
   }
-  void _showMealSelectionDialog() {
+  /*void _showMealSelectionDialog() {
     showModalBottomSheet(
       context: context,
       shape: RoundedRectangleBorder(
@@ -534,73 +533,25 @@ class _MyDiaryScreenState extends State<MyDiaryScreen>
         );
       },
     );
-  }
+  }*/
 
-  void _showFoodRecordDialog() {
-    showModalBottomSheet(
-      context: context,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(16),
-          topRight: Radius.circular(16),
-        ),
-      ),
-      backgroundColor: Colors.transparent, // 배경 투명
-      isScrollControlled: true, // 키보드 대비 스크롤 가능
-      builder: (BuildContext context) {
-        return FoodRecordDialog(
-          onDirectAdd: () {
-            Navigator.pop(context);
-            // 직접 추가 동작
-            print("직접 추가 버튼 클릭");
-          },
-          onSearch: (String searchText) {
-            Navigator.pop(context);
-            // 검색 동작
-            // 검색 동작
-            print("검색어 입력: $searchText");
-          },
-        );
-      },
-    );
-  }
   void _showTextRecordDialog() {
     showModalBottomSheet(
       context: context,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(16),
-          topRight: Radius.circular(16),
+          topLeft: Radius.circular(24),
+          topRight: Radius.circular(24),
         ),
       ),
-      backgroundColor: Colors.transparent, // Dialog 배경 투명
-      isScrollControlled: true, // 높이 조절 가능
+      isScrollControlled: true,
       builder: (BuildContext context) {
-        return TextRecordDialog(
-          onTakePhoto: () {
-            Navigator.pop(context);
-            print("사진 촬영 선택");
-            // 사진 촬영 동작 추가
-          },
-          onSelectFromAlbum: () {
-            Navigator.pop(context);
-            print("앨범에서 선택");
-            // 앨범에서 선택 동작 추가
-          },
-          onAddDirectly: () {
-            Navigator.pop(context);
-            print("직접 추가");
-            // 직접 추가 동작 추가
-          },
-          onSearchFood: () {
-            Navigator.pop(context);
-            print("음식 검색으로 추가");
-            // 음식 검색으로 추가 동작 추가
-          },
-        );
+        return DiaryRecordDialog(); // 다이얼로그 호출
       },
     );
   }
+
+
   void _showBodyInfoDialog() {
     showModalBottomSheet(
       context: context,
