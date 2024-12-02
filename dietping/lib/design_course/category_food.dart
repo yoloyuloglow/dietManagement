@@ -1,397 +1,227 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import '../api/api.dart';
-import 'design_course_app_theme.dart';
-import 'package:http/http.dart' as http; // For HTTP requests
+import 'package:http/http.dart' as http;
 
 class categoryfood extends StatefulWidget {
   final String menuCode;
   const categoryfood({Key? key, required this.menuCode}) : super(key: key);
-  // 카테고리 정보 출력
+
   @override
-  _categoryfood createState() => _categoryfood();
+  _CategoryFoodState createState() => _CategoryFoodState();
 }
 
-class _categoryfood extends State<categoryfood>
-    with TickerProviderStateMixin {
-  final double infoHeight = 364.0;
+class _CategoryFoodState extends State<categoryfood> with TickerProviderStateMixin {
+  List<dynamic> foodList = [];
+  Map<String, dynamic> menuDetails = {};
+  String selectedImageUrl = '';
 
-
-  AnimationController? animationController;
-  Animation<double>? animation;
-  double opacity1 = 0.0;
-  double opacity2 = 0.0;
-  double opacity3 = 0.0;
   @override
   void initState() {
-    animationController = AnimationController(
-        duration: const Duration(milliseconds: 1000), vsync: this);
-    animation = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(
-        parent: animationController!,
-        curve: Interval(0, 1.0, curve: Curves.fastOutSlowIn)));
-    setData();
     super.initState();
+    fetchData();
   }
 
-  // 데이터 불러오기
-  Future<void> setData() async {
+  Future<void> fetchData() async {
     try {
-      final response = await http.post(Uri.parse(API.loadMenuFood),
-          body: {
-            'menuid' : widget.menuCode
-          }
-      );
+      final response = await http.post(Uri.parse(API.loadMenuFood), body: {
+        'menuid': widget.menuCode,
+      });
+
       if (response.statusCode == 200) {
-        // 서버에서 데이터를 받아오면 처리
-        final jsonResponse = json.decode(response.body);
-        animationController?.forward();
-        setState(() {
-          // 받아온 데이터 처리
-          opacity1 = 1.0;
-          opacity2 = 1.0;
-          opacity3 = 1.0;
-          // 추가 데이터 로직이 있다면 여기에 포함
-        });
+        final Map<String, dynamic> jsonResponse = json.decode(response.body);
+
+        if (jsonResponse['result'] == true) {
+          //print(jsonResponse);
+
+          final List<dynamic> menuDataList = jsonResponse['menu'];
+          final List<dynamic> foodsData = jsonResponse['foods'];
+
+          if (menuDataList.isEmpty || foodsData.isEmpty) {
+            Fluttertoast.showToast(msg: '메뉴 데이터가 비어 있습니다.');
+            return;
+          }
+
+          // menuDataList와 foodsData를 매칭
+          final updatedFoodList = foodsData.map((food) {
+            final matchedMenu = menuDataList.firstWhere(
+                  (menu) => menu['foodcode'] == food['foodcoede'],
+              orElse: () => {},
+            );
+            return {
+              ...food,
+              'menuDetails': matchedMenu,
+            };
+          }).toList();
+
+          setState(() {
+            foodList = updatedFoodList;
+          });
+
+          //print("Updated Food List: $foodList");
+        } else {
+          Fluttertoast.showToast(msg: '요청된 음식 정보 로딩에 실패했습니다');
+        }
       } else {
-        throw Exception('Failed to load data');
+        Fluttertoast.showToast(msg: '서버 오류로 음식 정보를 불러올 수 없습니다');
       }
     } catch (error) {
       print('Error fetching data: $error');
     }
-    /*
-    await Future<dynamic>.delayed(const Duration(milliseconds: 200));
-    setState(() {
-      opacity1 = 1.0;
-    });
-    await Future<dynamic>.delayed(const Duration(milliseconds: 200));
-    setState(() {
-      opacity2 = 1.0;
-    });
-    await Future<dynamic>.delayed(const Duration(milliseconds: 200));
-    setState(() {
-      opacity3 = 1.0;
-    });*/
   }
+
 
   @override
   Widget build(BuildContext context) {
-    final double tempHeight = MediaQuery.of(context).size.height -
-        (MediaQuery.of(context).size.width / 1.2) +
-        24.0;
-    return Container(
-      color: DesignCourseAppTheme.nearlyWhite,
+    return DefaultTabController(
+      length: foodList.length,
       child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: Stack(
-          children: <Widget>[
-            Column(
-              children: <Widget>[
-                AspectRatio(
-                  aspectRatio: 1.2,
-                  child: Image.asset('assets/design_course/webInterFace.png'),
-                ),
-              ],
-            ),
-            Positioned(
-              top: (MediaQuery.of(context).size.width / 1.2) - 24.0,
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: DesignCourseAppTheme.nearlyWhite,
-                  borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(32.0),
-                      topRight: Radius.circular(32.0)),
-                  boxShadow: <BoxShadow>[
-                    BoxShadow(
-                        color: DesignCourseAppTheme.grey.withOpacity(0.2),
-                        offset: const Offset(1.1, 1.1),
-                        blurRadius: 10.0),
-                  ],
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 8, right: 8),
-                  child: SingleChildScrollView(
-                    child: Container(
-                      constraints: BoxConstraints(
-                          minHeight: infoHeight,
-                          maxHeight: tempHeight > infoHeight
-                              ? tempHeight
-                              : infoHeight),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Padding(
-                            padding: const EdgeInsets.only(
-                                top: 32.0, left: 18, right: 16),
-                            child: Text(
-                              '닉네임',
-                              textAlign: TextAlign.left,
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 22,
-                                letterSpacing: 0.27,
-                                color: DesignCourseAppTheme.darkerText,
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(
-                                left: 16, right: 16, bottom: 8, top: 16),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: <Widget>[
-                                Text(
-                                  '카테고리?',
-                                  textAlign: TextAlign.left,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w200,
-                                    fontSize: 22,
-                                    letterSpacing: 0.27,
-                                    color: DesignCourseAppTheme.nearlyBlue,
-                                  ),
-                                ),
-                                Container(
-                                  child: Row(
-                                    children: <Widget>[
-                                      Text(
-                                        '4.3',
-                                        textAlign: TextAlign.left,
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w200,
-                                          fontSize: 22,
-                                          letterSpacing: 0.27,
-                                          color: DesignCourseAppTheme.grey,
-                                        ),
-                                      ),
-                                      Icon(
-                                        Icons.star,
-                                        color: DesignCourseAppTheme.nearlyBlue,
-                                        size: 24,
-                                      ),
-                                    ],
-                                  ),
-                                )
-                              ],
-                            ),
-                          ),
-                          AnimatedOpacity(
-                            duration: const Duration(milliseconds: 500),
-                            opacity: opacity1,
-                            child: Padding(
-                              padding: const EdgeInsets.all(8),
-                              child: Row(
-                                children: <Widget>[
-                                  getTimeBoxUI('24', 'Classe'),
-                                  getTimeBoxUI('2hours', 'Time'),
-                                  getTimeBoxUI('24', 'Seat'),
-                                ],
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: AnimatedOpacity(
-                              duration: const Duration(milliseconds: 500),
-                              opacity: opacity2,
-                              child: Padding(
-                                padding: const EdgeInsets.only(
-                                    left: 16, right: 16, top: 8, bottom: 8),
-                                child: Text(
-                                  'Lorem ipsum is simply dummy text of printing & typesetting industry, Lorem ipsum is simply dummy text of printing & typesetting industry.',
-                                  textAlign: TextAlign.justify,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w200,
-                                    fontSize: 14,
-                                    letterSpacing: 0.27,
-                                    color: DesignCourseAppTheme.grey,
-                                  ),
-                                  maxLines: 3,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ),
-                          ),
-                          AnimatedOpacity(
-                            duration: const Duration(milliseconds: 500),
-                            opacity: opacity3,
-                            child: Padding(
-                              padding: const EdgeInsets.only(
-                                  left: 16, bottom: 100, right: 16),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: <Widget>[
-                                  Container(
-                                    width: 48,
-                                    height: 48,
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: DesignCourseAppTheme.nearlyWhite,
-                                        borderRadius: const BorderRadius.all(
-                                          Radius.circular(16.0),
-                                        ),
-                                        border: Border.all(
-                                            color: DesignCourseAppTheme.grey
-                                                .withOpacity(0.2)),
-                                      ),
-                                      child: Icon(
-                                        Icons.add,
-                                        color: DesignCourseAppTheme.nearlyBlue,
-                                        size: 28,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(
-                                    width: 0,
-                                  ),
-                                  Expanded(
-                                    child: Container(
-                                      height: 48,
-                                      decoration: BoxDecoration(
-                                        color: DesignCourseAppTheme.nearlyBlue,
-                                        borderRadius: const BorderRadius.all(
-                                          Radius.circular(16.0),
-                                        ),
-                                        boxShadow: <BoxShadow>[
-                                          BoxShadow(
-                                              color: DesignCourseAppTheme
-                                                  .nearlyBlue
-                                                  .withOpacity(0.5),
-                                              offset: const Offset(1.1, 1.1),
-                                              blurRadius: 10.0),
-                                        ],
-                                      ),
-                                      child: Center(
-                                        child: Text(
-                                          'Join Course',
-                                          textAlign: TextAlign.left,
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 18,
-                                            letterSpacing: 0.0,
-                                            color: DesignCourseAppTheme
-                                                .nearlyWhite,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ),
-                          ),
-                          SizedBox(
-                            height: MediaQuery.of(context).padding.bottom,
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              top: (MediaQuery.of(context).size.width / 1.2) - 24.0 - 35,
-              right: 35,
-              child: ScaleTransition(
-                alignment: Alignment.center,
-                scale: CurvedAnimation(
-                    parent: animationController!, curve: Curves.fastOutSlowIn),
-                child: Card(
-                  color: DesignCourseAppTheme.nearlyBlue,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(50.0)),
-                  elevation: 10.0,
-                  child: Container(
-                    width: 60,
-                    height: 60,
-                    child: Center(
-                      child: Icon(
-                        Icons.favorite,
-                        color: DesignCourseAppTheme.nearlyWhite,
-                        size: 30,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
-              child: SizedBox(
-                width: AppBar().preferredSize.height,
-                height: AppBar().preferredSize.height,
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    borderRadius:
-                    BorderRadius.circular(AppBar().preferredSize.height),
-                    child: Icon(
-                      Icons.arrow_back_ios,
-                      color: DesignCourseAppTheme.nearlyBlack,
-                    ),
-                    onTap: () {
-                      Navigator.pop(context);
-                    },
-                  ),
-                ),
-              ),
-            )
-          ],
+        appBar: AppBar(
+          title: Text('음식 상세 정보'),
+          bottom: TabBar(
+            isScrollable: true,
+            tabs: foodList.map((food) {
+              return Tab(text: food['foodname'] ?? 'Unknown');
+            }).toList(),
+          ),
+        ),
+        body: TabBarView(
+          children: foodList.map((food) {
+            return FoodDetailView(
+              foodName: food['foodname'] ?? 'Unknown',
+              menuDetails: food['menuDetails'] ?? {},
+              imageUrl: food['menuDetails']?['image'] ?? '',
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+}
+
+class FoodDetailView extends StatelessWidget {
+  final String foodName;
+  final Map<String, dynamic> menuDetails;
+  final String imageUrl;
+
+  const FoodDetailView({
+    Key? key,
+    required this.foodName,
+    required this.menuDetails,
+    required this.imageUrl,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 이미지 표시
+          _buildImageSection(),
+          const SizedBox(height: 16),
+
+          // 기본 정보 (이름, 재료, 레시피, 메뉴 디테일)
+          _buildSectionTitle('기본 정보'),
+          _buildDetailRow('이름', foodName),
+          _buildDetailRow('재료', menuDetails['matarialinfo'] ?? '정보 없음'),
+          _buildDetailRow('레시피', menuDetails['recipeinfo'] ?? '정보 없음'),
+          _buildDetailRow('설명', menuDetails['menudetail'] ?? '정보 없음'),
+
+          const SizedBox(height: 16),
+
+          // 영양소 정보
+          _buildSectionTitle('영양소 정보'),
+          ..._buildNutrientDetails(menuDetails),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildImageSection() {
+    final fallbackImageUrl = menuDetails['image'] ?? ''; // 메뉴 이미지 경로
+
+    return imageUrl.isNotEmpty
+        ? Image.network(
+      imageUrl,
+      fit: BoxFit.cover,
+      height: 200,
+      width: double.infinity,
+    )
+        : fallbackImageUrl.isNotEmpty
+        ? Image.network(
+      fallbackImageUrl,
+      fit: BoxFit.cover,
+      height: 200,
+      width: double.infinity,
+    )
+        : Container(
+      height: 200,
+      color: Colors.grey,
+      child: Center(child: Text('이미지 없음')),
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: Colors.black87,
         ),
       ),
     );
   }
 
-  Widget getTimeBoxUI(String text1, String txt2) {
+  Widget _buildDetailRow(String title, String value) {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Container(
-        decoration: BoxDecoration(
-          color: DesignCourseAppTheme.nearlyWhite,
-          borderRadius: const BorderRadius.all(Radius.circular(16.0)),
-          boxShadow: <BoxShadow>[
-            BoxShadow(
-                color: DesignCourseAppTheme.grey.withOpacity(0.2),
-                offset: const Offset(1.1, 1.1),
-                blurRadius: 8.0),
-          ],
-        ),
-        child: Padding(
-          padding: const EdgeInsets.only(
-              left: 18.0, right: 18.0, top: 12.0, bottom: 12.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              Text(
-                text1,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
-                  letterSpacing: 0.27,
-                  color: DesignCourseAppTheme.nearlyBlue,
-                ),
-              ),
-              Text(
-                txt2,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontWeight: FontWeight.w200,
-                  fontSize: 14,
-                  letterSpacing: 0.27,
-                  color: DesignCourseAppTheme.grey,
-                ),
-              ),
-            ],
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black54,
+            ),
           ),
-        ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 16,
+              color: Colors.black87,
+            ),
+          ),
+        ],
       ),
     );
+  }
+
+  List<Widget> _buildNutrientDetails(Map<String, dynamic> details) {
+    // 영문 키와 한국어 이름 매핑 테이블
+    final Map<String, String> nutrientLabels = {
+      'Natrium': '나트륨',
+      'calcium': '칼슘',
+      'iron': '철분',
+      'fat': '지방',
+      'protein': '단백질',
+      'kcal': '칼로리',
+      'choles': '콜레스테롤',
+    };
+
+    final nutrients = nutrientLabels.keys.toList();
+
+    return nutrients.map((key) {
+      final value = details[key] ?? '정보 없음';
+      final label = nutrientLabels[key] ?? key; // 키를 한국어로 변환
+      return _buildDetailRow(label, value); // 한국어 이름과 값 표시
+    }).toList();
   }
 }

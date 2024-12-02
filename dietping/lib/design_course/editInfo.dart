@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../model/loaduser.dart';
@@ -28,12 +27,11 @@ class _UserEditScreenState extends State<UserEditScreen> {
   Future<void> loadUserInfo() async {
     User? user = await LoadUser.loadUser();
     final url = Uri.parse(API.loadUser);
-    print(user?.user_id);
     try {
       final response = await http.post(
         url,
         body: {
-          "userid" : user?.user_id ?? '',
+          "userid": user?.user_id ?? '',
         },
       );
 
@@ -41,13 +39,62 @@ class _UserEditScreenState extends State<UserEditScreen> {
         final userInfo = json.decode(response.body);
         if (userInfo['result'] == 'true') {
           setState(() {
-            nicknameController.text = userInfo['user_info'][0][0]?.toString() ?? ''; // String 처리
-            kcalController.text = userInfo['user_info'][0][1]?.toString() ?? '0';  // double 처리
-            heightController.text = userInfo['user_info'][0][2]?.toString() ?? '0.0';  // double 처리
-            weightController.text = userInfo['user_info'][0][3]?.toString() ?? '0.0';  // double 처리
+            nicknameController.text = userInfo['user_info'][0][0]?.toString() ?? '';
+            kcalController.text = userInfo['user_info'][0][1]?.toString() ?? '0';
+            heightController.text = userInfo['user_info'][0][2]?.toString() ?? '0.0';
+            weightController.text = userInfo['user_info'][0][3]?.toString() ?? '0.0';
           });
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text("유저 정보 불러오기 성공")),
+          );
+        }
+      } else {
+        throw Exception("Failed to load user information.");
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e")),
+      );
+    }
+  }
+
+  Future<void> updateUserInfo() async {
+    // 입력값 검증
+    if (nicknameController.text.trim().isEmpty ||
+        kcalController.text.trim().isEmpty ||
+        heightController.text.trim().isEmpty ||
+        weightController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("모든 필드를 입력해주세요.")),
+      );
+      return;
+    }
+
+    User? user = await LoadUser.loadUser();
+    final url = Uri.parse(API.updateUser); // 수정할 정보 전달하는 API
+
+    try {
+      final response = await http.post(
+        url,
+        body: {
+          "userid": user?.user_id ?? '',
+          "nickname": nicknameController.text.trim(),
+          "kcal": kcalController.text.trim(),
+          "height": heightController.text.trim(),
+          "weight": weightController.text.trim(),
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final result = json.decode(response.body);
+        if (result['result'] == 'true') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("정보 수정 성공")),
+          );
+          Navigator.pop(context); // 이전 화면으로 돌아감
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("정보 수정 실패: ${result['message']}")),
           );
         }
       } else {
@@ -64,7 +111,7 @@ class _UserEditScreenState extends State<UserEditScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Edit User Information"),
+        title: Text("회원 정보 수정하기"),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -74,17 +121,17 @@ class _UserEditScreenState extends State<UserEditScreen> {
             children: [
               TextFormField(
                 controller: nicknameController,
-                decoration: InputDecoration(labelText: "Nickname"),
+                decoration: InputDecoration(labelText: "닉네임"),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return "Please enter a nickname";
+                    return "Please enter a valid nickname";
                   }
                   return null;
                 },
               ),
               TextFormField(
                 controller: kcalController,
-                decoration: InputDecoration(labelText: "Target Calories"),
+                decoration: InputDecoration(labelText: "목표 칼로리"),
                 keyboardType: TextInputType.number,
                 validator: (value) {
                   if (value == null || value.isEmpty || double.tryParse(value) == null) {
@@ -95,7 +142,7 @@ class _UserEditScreenState extends State<UserEditScreen> {
               ),
               TextFormField(
                 controller: heightController,
-                decoration: InputDecoration(labelText: "Height (cm)"),
+                decoration: InputDecoration(labelText: "키 (cm)"),
                 keyboardType: TextInputType.number,
                 validator: (value) {
                   if (value == null || value.isEmpty || double.tryParse(value) == null) {
@@ -106,7 +153,7 @@ class _UserEditScreenState extends State<UserEditScreen> {
               ),
               TextFormField(
                 controller: weightController,
-                decoration: InputDecoration(labelText: "Weight (kg)"),
+                decoration: InputDecoration(labelText: "몸무게 (kg)"),
                 keyboardType: TextInputType.number,
                 validator: (value) {
                   if (value == null || value.isEmpty || double.tryParse(value) == null) {
@@ -119,10 +166,10 @@ class _UserEditScreenState extends State<UserEditScreen> {
               ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
-                    // updateUserInfo();
+                    updateUserInfo(); // 정보 수정 API 호출
                   }
                 },
-                child: Text("Update Information"),
+                child: Text("정보 변경하기"),
               ),
             ],
           ),

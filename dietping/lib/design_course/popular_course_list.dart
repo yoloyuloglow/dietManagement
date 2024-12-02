@@ -1,9 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http; // HTTP 요청을 위한 패키지
+import 'package:http/http.dart' as http;
 import '../api/api.dart';
 import 'category_food.dart';
-import 'course_info_screen.dart'; // CourseInfoScreen을 가져옵니다.
 
 class Category {
   final String contents;
@@ -20,7 +19,6 @@ class Category {
     required this.menuname,
   });
 
-  // JSON 데이터를 Category 객체로 변환하는 함수
   factory Category.fromJson(Map<String, dynamic> json) {
     return Category(
       contents: json['contents'] ?? '',
@@ -42,18 +40,43 @@ class PopularCourseList extends StatefulWidget {
 
 class _PopularCourseListState extends State<PopularCourseList> {
   late Future<List<Category>> popularCourses;
+  List<Category> courses = [];
+  bool isLoading = false;
+  int currentPage = 1;
+  ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    popularCourses = fetchPopularCourses(); // 서버에서 인기 코스를 받아옴
+    popularCourses = fetchPopularCourses(); // 서버에서 첫 번째 페이지를 받아옴
+    _scrollController.addListener(_scrollListener); // 스크롤 리스너 추가
   }
 
-  // 서버에서 인기 코스 목록을 받아오는 함수
+  @override
+  void dispose() {
+    _scrollController.removeListener(_scrollListener); // 리스너 제거
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollListener() {
+    if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent) {
+      // 스크롤이 끝에 도달했을 때
+      if (!isLoading) {
+        setState(() {
+          isLoading = true; // 데이터 로딩 중 표시
+        });
+        fetchMoreData();
+      }
+    }
+  }
+
+  // 첫 번째 페이지의 데이터를 받아오는 함수
   Future<List<Category>> fetchPopularCourses() async {
     try {
       final response = await http.post(Uri.parse(API.loadCategoryMenu), body: {
         'categoryid': widget.menucode,
+        'page': currentPage.toString(), // 페이지 번호 전달
       });
       if (response.statusCode == 200) {
         final Map<String, dynamic> jsonResponse = json.decode(response.body);
@@ -67,6 +90,34 @@ class _PopularCourseListState extends State<PopularCourseList> {
     }
   }
 
+  // 더 많은 데이터를 받아오는 함수 (무한 스크롤)
+  Future<void> fetchMoreData() async {
+    currentPage++; // 페이지 번호 증가
+    try {
+      final response = await http.post(Uri.parse(API.loadCategoryMenu), body: {
+        'categoryid': widget.menucode,
+        'page': currentPage.toString(),
+      });
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = json.decode(response.body);
+        final List<dynamic> categorymenu = jsonResponse['categorymenu'] ?? [];
+        List<Category> newCourses = categorymenu.map((course) => Category.fromJson(course)).toList();
+
+        setState(() {
+          courses.addAll(newCourses); // 기존 목록에 새로운 데이터를 추가
+          isLoading = false; // 데이터 로딩 종료
+        });
+      } else {
+        throw Exception('Failed to load more courses');
+      }
+    } catch (e) {
+      setState(() {
+        isLoading = false; // 에러가 나도 로딩 종료
+      });
+      print('Failed to load more courses: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -74,72 +125,79 @@ class _PopularCourseListState extends State<PopularCourseList> {
       body: FutureBuilder<List<Category>>(
         future: popularCourses,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+          if (snapshot.connectionState == ConnectionState.waiting && courses.isEmpty) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(child: Text('No courses available.'));
           } else {
-            List<Category> courses = snapshot.data!;
+            // 최초 데이터
+            if (courses.isEmpty) {
+              courses = snapshot.data!;
+            }
 
-            // 세로 리스트뷰로 구성
             return ListView.builder(
+              controller: _scrollController,
               padding: const EdgeInsets.all(8),
-              itemCount: courses.length,
+              itemCount: courses.length + 1, // 로딩 아이템 추가
               itemBuilder: (context, index) {
-                final category = courses[index];
-                return InkWell(
-                  onTap: () {
-                    // CourseInfoScreen으로 이동하고 선택된 Course의 code 전달
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            categoryfood(menuCode: category.menucode),
+                if (index == courses.length) {
+                  // 데이터 로딩 중 표시
+                  return isLoading
+                      ? Center(child: CircularProgressIndicator())
+                      : Container();
+                } else {
+                  final category = courses[index];
+                  return InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              categoryfood(menuCode: category.menucode),
+                        ),
+                      );
+                    },
+                    child: Card(
+                      elevation: 5.0,
+                      margin: const EdgeInsets.symmetric(vertical: 8.0),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16.0),
                       ),
-                    );
-                  },
-                  child: Card(
-                    elevation: 5.0,
-                    margin: const EdgeInsets.symmetric(vertical: 8.0),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16.0),
-                    ),
-                    child: Row(
-                      children: [
-                        // 이미지
-                        Container(
-                          width: 100,
-                          height: 100,
-                          margin: const EdgeInsets.all(8.0),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(8.0),
-                            image: DecorationImage(
-                              image: NetworkImage(category.image),
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                        // 메뉴 이름
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(
-                              category.menuname,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 100,
+                            height: 100,
+                            margin: const EdgeInsets.all(8.0),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8.0),
+                              image: DecorationImage(
+                                image: NetworkImage(category.image),
+                                fit: BoxFit.cover,
                               ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                        ),
-                      ],
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                category.menuname,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                );
+                  );
+                }
               },
             );
           }

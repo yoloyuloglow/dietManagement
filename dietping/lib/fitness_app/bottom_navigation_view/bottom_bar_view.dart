@@ -49,10 +49,10 @@ class _BottomBarViewState extends State<BottomBarView>
                 elevation: 16.0,
                 clipper: TabClipper(
                     radius: Tween<double>(begin: 0.0, end: 1.0)
-                            .animate(CurvedAnimation(
-                                parent: animationController!,
-                                curve: Curves.fastOutSlowIn))
-                            .value *
+                        .animate(CurvedAnimation(
+                        parent: animationController!,
+                        curve: Curves.fastOutSlowIn))
+                        .value *
                         38.0),
                 child: Column(
                   children: <Widget>[
@@ -60,7 +60,7 @@ class _BottomBarViewState extends State<BottomBarView>
                       height: 62,
                       child: Padding(
                         padding:
-                            const EdgeInsets.only(left: 8, right: 8, top: 4),
+                        const EdgeInsets.only(left: 8, right: 8, top: 4),
                         child: Row(
                           children: <Widget>[
                             Expanded(
@@ -83,10 +83,10 @@ class _BottomBarViewState extends State<BottomBarView>
                             ),
                             SizedBox(
                               width: Tween<double>(begin: 0.0, end: 1.0)
-                                      .animate(CurvedAnimation(
-                                          parent: animationController!,
-                                          curve: Curves.fastOutSlowIn))
-                                      .value *
+                                  .animate(CurvedAnimation(
+                                  parent: animationController!,
+                                  curve: Curves.fastOutSlowIn))
+                                  .value *
                                   64.0,
                             ),
                             Expanded(
@@ -122,7 +122,7 @@ class _BottomBarViewState extends State<BottomBarView>
         ),
         Padding(
           padding:
-              EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
+          EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
           child: SizedBox(
             width: 38 * 2.0,
             height: 38 + 62.0,
@@ -140,7 +140,7 @@ class _BottomBarViewState extends State<BottomBarView>
                         CurvedAnimation(
                             parent: animationController!,
                             curve: Curves.fastOutSlowIn)),
-                    child: Container(                //
+                    child: Container(
                       // alignment: Alignment.center,s
                       decoration: BoxDecoration(
                         color: FitnessAppTheme.nearlyDarkBlue,
@@ -223,12 +223,12 @@ class _TabIconsState extends State<TabIcons> with TickerProviderStateMixin {
       vsync: this,
       duration: const Duration(milliseconds: 400),
     )..addStatusListener((AnimationStatus status) {
-        if (status == AnimationStatus.completed) {
-          if (!mounted) return;
-          widget.removeAllSelect!();
-          widget.tabIconData?.animationController?.reverse();
-        }
-      });
+      if (status == AnimationStatus.completed) {
+        if (!mounted) return;
+        widget.removeAllSelect!();
+        widget.tabIconData?.animationController?.reverse();
+      }
+    });
     super.initState();
   }
 
@@ -261,7 +261,7 @@ class _TabIconsState extends State<TabIcons> with TickerProviderStateMixin {
                       CurvedAnimation(
                           parent: widget.tabIconData!.animationController!,
                           curve:
-                              Interval(0.1, 1.0, curve: Curves.fastOutSlowIn))),
+                          Interval(0.1, 1.0, curve: Curves.fastOutSlowIn))),
                   child: Image.asset(widget.tabIconData!.isSelected
                       ? widget.tabIconData!.selectedImagePath
                       : widget.tabIconData!.imagePath),
