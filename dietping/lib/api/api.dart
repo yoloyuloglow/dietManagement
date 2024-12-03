@@ -12,6 +12,7 @@ class API{
   static const loadUserMenu = "$hostConnect/loadUserMenu";
   static const loadUserDiary = "$hostConnect/loadUserDiary";
   static const updateUserDiary = "$hostConnect/updateUserDiary";
+  static const deleteUserDiary = "$hostConnect/deleteUserDiary";
   static const loadFoodInfo = "$hostConnect/loadFoodInfo";
   static const insertMenu = "$hostConnect/insertMenu";
   static const deleteMenu = "$hostConnect/deleteMenu";

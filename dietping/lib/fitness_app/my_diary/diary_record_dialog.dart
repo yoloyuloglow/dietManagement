@@ -91,6 +91,21 @@ class _DiaryRecordDialogState extends State<DiaryRecordDialog> {
       request.fields['selectedCategory'] = selectedCategory;
       request.fields['selectedDate'] = widget.selectedDate.toIso8601String();
 
+      // 기존의 날짜별 기록을 먼저 불러오기
+      final existingNutrition = await _fetchExistingNutrition();
+      print("existingNutrition");
+      print(existingNutrition);
+      // 기존 영양소 값 불러오기 (만약 없다면 기본값 0으로 설정)
+      totalCalories = existingNutrition['tcal'] ?? 0;
+      totalCarbs = existingNutrition['tcarbs'] ?? 0;
+      totalSugar = existingNutrition['tsugar'] ?? 0;
+      totalFat = existingNutrition['tfat'] ?? 0;
+      totalProtein = existingNutrition['tprotein'] ?? 0;
+      totalSodium = existingNutrition['tsodium'] ?? 0;
+
+      print("토탈 칼로리");
+      print(totalCalories);
+
       // 음식 데이터 추가
       for (var food in addedFoods) {
         request.fields['food_id'] = food[0].toString();
@@ -117,6 +132,7 @@ class _DiaryRecordDialogState extends State<DiaryRecordDialog> {
           request.files.add(await http.MultipartFile.fromPath('images', img.path));
         }
       }
+
       print(request);
       // 요청 보내기
       var response = await request.send();
@@ -139,6 +155,55 @@ class _DiaryRecordDialogState extends State<DiaryRecordDialog> {
       protein: totalProtein,
       sodium: totalSodium,
     );
+  }
+
+  Future<Map<String, double>> _fetchExistingNutrition() async {
+    try {
+      final url = Uri.parse(API.loadUserDiary);
+      //String formattedDate = widget.selectedDate.toIso8601String().substring(0, 10);
+      final response = await http.post(
+        url,
+        body: {
+          'id': userId!,
+          'selectedDate': widget.selectedDate.toIso8601String(),
+        },
+      );
+      print( "날짜 출력");
+      print(widget.selectedDate.toIso8601String());
+      if (response.statusCode == 200) {
+        final jsonResponse = jsonDecode(response.body);
+        print("로드 기록 반환");
+        print(jsonResponse);
+        return {
+          'tcal': jsonResponse['diary_info'][0][2] ?? 0.0,
+          'tcarbs': jsonResponse['diary_info'][0][3] ?? 0.0,
+          'tsugar': jsonResponse['diary_info'][0][4] ?? 0.0,
+          'tfat': jsonResponse['diary_info'][0][5] ?? 0.0,
+          'tprotein': jsonResponse['diary_info'][0][6] ?? 0.0,
+          'tsodium': jsonResponse['diary_info'][0][7] ?? 0.0,
+        };
+      } else {
+        Fluttertoast.showToast(msg: "기존 영양소 정보 가져오기 실패");
+        return {
+          'tcal': 0.0,
+          'tcarbs': 0.0,
+          'tsugar': 0.0,
+          'tfat': 0.0,
+          'tprotein': 0.0,
+          'tsodium': 0.0,
+        };
+      }
+    } catch (e) {
+      print("Error fetching existing nutrition: $e");
+      return {
+        'tcal': 0.0,
+        'tcarbs': 0.0,
+        'tsugar': 0.0,
+        'tfat': 0.0,
+        'tprotein': 0.0,
+        'tsodium': 0.0,
+      };
+    }
   }
 
   Future<void> _updateDailyNutrition({
@@ -165,7 +230,7 @@ class _DiaryRecordDialogState extends State<DiaryRecordDialog> {
           'tsodium': sodium.toString(),
         },
       );
-
+        print(calories.toString());
       if (response.statusCode == 200) {
         final jsonResponse = jsonDecode(response.body);
         if (jsonResponse['success'] == true) {

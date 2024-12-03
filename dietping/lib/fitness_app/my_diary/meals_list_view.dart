@@ -170,6 +170,7 @@ class _MealsListViewState extends State<MealsListView>
         // 이미 해당 시간대가 존재하면 데이터 병합
         groupedData[meal.titleTxt]!.kcal += meal.kcal;
 
+
         // meals 병합
         var existingMeals = groupedData[meal.titleTxt]!.meals ?? [];
         var newMeals = meal.meals ?? [];

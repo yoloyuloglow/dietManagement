@@ -28,7 +28,7 @@ class MealDetailDialog extends StatefulWidget {
 
 class _MealDetailDialogState extends State<MealDetailDialog> {
   bool isLoading = false;
-
+  String? userId;
 // 삭제 및 기록 업데이트 후 메인 화면으로 이동
   /*Future<void> _deleteMealAndGoToMain() async {
     setState(() {
@@ -88,7 +88,7 @@ class _MealDetailDialogState extends State<MealDetailDialog> {
     });
 
     try {
-      // 삭제 요청
+      // 1. 삭제 요청
       print("삭제 요청 시작: 시간대 ${widget.title}, 날짜 ${widget.selectedDate}");
       bool deleteSuccess = await _deleteMealFromServer();
       print("삭제 요청 결과: $deleteSuccess");
@@ -98,33 +98,151 @@ class _MealDetailDialogState extends State<MealDetailDialog> {
         return;
       }
 
-      // 삭제 후 메뉴 재로드
-      print("메뉴 재로드 시작");
-      List<Map<String, dynamic>> latestFoodInfo = await _fetchMealsFromServer();
-      print("메뉴 재로드 완료: $latestFoodInfo");
+      // 2. 기존 영양소 불러오기
+      final existingNutrition = await _fetchExistingNutrition();
+      double totalCalories = existingNutrition['tcal'] ?? 0.0;
+      double totalCarbs = existingNutrition['tcarbs'] ?? 0.0;
+      double totalSugar = existingNutrition['tsugar'] ?? 0.0;
+      double totalFat = existingNutrition['tfat'] ?? 0.0;
+      double totalProtein = existingNutrition['tprotein'] ?? 0.0;
+      double totalSodium = existingNutrition['tsodium'] ?? 0.0;
 
-      // 최신 데이터 기반 기록 업데이트 요청
-      bool updateSuccess = await _updateRecordDB(latestFoodInfo);
-      print("기록 업데이트 결과: $updateSuccess");
+      print("기존 영양소: 칼로리: $totalCalories, 탄수화물: $totalCarbs, 당류: $totalSugar");
 
+      // 3. 삭제된 음식에 해당하는 영양소 값을 빼기
+      print("음식 정보");
+      print(widget.foodinfo);
+      for (int i = 0; i < widget.foodinfo.length; i++) {
+        var food = widget.foodinfo[i];
+          // 삭제된 음식의 영양 정보를 빼기
+        print(food['calories']);
+        totalCalories -= food['calories'] ?? 0.0;
+        totalCarbs -= food['carbs'] ?? 0.0;
+        totalSugar -= food['sugar'] ?? 0.0;
+        totalFat -= food['fat'] ?? 0.0;
+        totalProtein -= food['protein'] ?? 0.0;
+        totalSodium -= food['sodium'] ?? 0.0;
+      }
+
+      print("삭제 후 영양소: 칼로리: $totalCalories, 탄수화물: $totalCarbs, 당류: $totalSugar");
+
+      // 4. 영양소 업데이트 요청 (메뉴 재로드 하지 않고, 삭제된 음식 정보만큼 빼기)
+      bool updateSuccess = await _updateRecordDB(totalCalories, totalCarbs, totalSugar, totalFat, totalProtein, totalSodium);
       if (!updateSuccess) {
         Fluttertoast.showToast(msg: "기록 업데이트 실패");
         return;
       }
 
-      // 성공 시 메인 화면으로 이동
+      // 6. 만약 마지막 음식이 삭제된 경우, 기록 삭제 요청
+      if (totalCalories <= 0) {
+        // 마지막 음식이라면 기록 삭제 요청
+        print("마지막 음식이라 삭제함");
+        bool deleteRecordSuccess = await _deleteRecordFromServer();
+        if (!deleteRecordSuccess) {
+          Fluttertoast.showToast(msg: "기록 삭제 실패");
+          return;
+        }
+        print("기록 삭제 완료");
+      }
+
+      // 7. 성공 시 메인 화면으로 이동
       Fluttertoast.showToast(msg: "삭제 및 업데이트 완료");
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => MyDiaryScreen()),
-            (Route<dynamic> route) => false,
-      );
+      //Navigator.of(context).pushAndRemoveUntil(
+      //  MaterialPageRoute(builder: (context) => MyDiaryScreen()),
+      //      (Route<dynamic> route) => false, // 이전 화면 제거
+      //);
     } catch (e) {
       Fluttertoast.showToast(msg: "오류 발생: $e");
+      print("삭제 및 업데이트 중 오류 발생: $e");
       print("삭제 및 업데이트 중 오류 발생: $e");
     } finally {
       setState(() {
         isLoading = false;
       });
+    }
+  }
+
+  // 기록 삭제 서버 요청
+  Future<bool> _deleteRecordFromServer() async {
+    User? user = await LoadUser.loadUser();
+
+    try {
+      final url = Uri.parse(API.deleteUserDiary); // 기록 삭제 API 주소
+      print("기록 삭제 요청 URL: $url");
+
+      final response = await http.post(
+        url,
+        body: {
+          'userid': user?.user_id, // 유저 ID
+          'date': widget.selectedDate.toIso8601String(), // 선택된 날짜
+        },
+      );
+
+      print("기록 삭제 요청 응답 상태: ${response.statusCode}");
+      print("기록 삭제 요청 응답 본문: ${response.body}");
+
+      if (response.statusCode == 200) {
+        final result = jsonDecode(response.body);
+        print("기록 삭제 요청 결과 파싱: $result");
+        return result['result'] == 'true';
+      } else {
+        return false;
+      }
+    } catch (e) {
+      print("기록 삭제 요청 중 오류 발생: $e");
+      return false;
+    }
+  }
+
+  Future<Map<String, double>> _fetchExistingNutrition() async {
+    User? user = await LoadUser.loadUser();
+    userId = user?.user_id;
+
+    try {
+      final url = Uri.parse(API.loadUserDiary);
+      //String formattedDate = widget.selectedDate.toIso8601String().substring(0, 10);
+      final response = await http.post(
+        url,
+        body: {
+          'id': userId!,
+          'selectedDate': widget.selectedDate.toIso8601String(),
+        },
+      );
+      print( "날짜 출력");
+      print(widget.selectedDate.toIso8601String());
+      if (response.statusCode == 200) {
+        final jsonResponse = jsonDecode(response.body);
+        print("로드 기록 반환");
+        print(jsonResponse);
+        return {
+          'tcal': jsonResponse['diary_info'][0][2] ?? 0.0,
+          'tcarbs': jsonResponse['diary_info'][0][3] ?? 0.0,
+          'tsugar': jsonResponse['diary_info'][0][4] ?? 0.0,
+          'tfat': jsonResponse['diary_info'][0][5] ?? 0.0,
+          'tprotein': jsonResponse['diary_info'][0][6] ?? 0.0,
+          'tsodium': jsonResponse['diary_info'][0][7] ?? 0.0,
+        };
+      } else {
+        Fluttertoast.showToast(msg: "기존 영양소 정보 가져오기 실패");
+        return {
+          'tcal': 0.0,
+          'tcarbs': 0.0,
+          'tsugar': 0.0,
+          'tfat': 0.0,
+          'tprotein': 0.0,
+          'tsodium': 0.0,
+        };
+      }
+    } catch (e) {
+      print("Error fetching existing nutrition: $e");
+      return {
+        'tcal': 0.0,
+        'tcarbs': 0.0,
+        'tsugar': 0.0,
+        'tfat': 0.0,
+        'tprotein': 0.0,
+        'tsodium': 0.0,
+      };
     }
   }
 
@@ -174,36 +292,18 @@ class _MealDetailDialogState extends State<MealDetailDialog> {
   }
 
 
-// 기록 업데이트 요청
-/*  Future<bool> _updateRecordDB(List<Map<String, dynamic>> updatedFoodInfo) async {
+// 기록 업데이트 요청 (업데이트된 영양소 값만큼 서버로 보내기)
+  Future<bool> _updateRecordDB(
+      double totalCalories,
+      double totalCarbs,
+      double totalSugar,
+      double totalFat,
+      double totalProtein,
+      double totalSodium,
+      ) async {
     try {
       User? user = await LoadUser.loadUser();
-      print("유저 정보: $user");
-
       if (user == null) return false;
-
-      // 기록 업데이트 계산
-      double updatedCalories = 0.0;
-      double updatedCarbs = 0.0;
-      double updatedSugar = 0.0;
-      double updatedFat = 0.0;
-      double updatedProtein = 0.0;
-      double updatedSodium = 0.0;
-
-      print("기록 업데이트 시작: updatedFoodInfo = $updatedFoodInfo");
-
-      for (var food in updatedFoodInfo) {
-        updatedCalories += (food['calories'] as num).toDouble();
-        updatedCarbs += (food['carbs'] as num).toDouble();
-        updatedSugar += (food['sugar'] as num).toDouble();
-        updatedFat += (food['fat'] as num).toDouble();
-        updatedProtein += (food['protein'] as num).toDouble();
-        updatedSodium += (food['sodium'] as num).toDouble();
-      }
-
-      // 계산 결과 디버깅
-      print("계산된 영양소 합계:");
-      print("칼로리: $updatedCalories, 탄수화물: $updatedCarbs, 당: $updatedSugar, 지방: $updatedFat, 단백질: $updatedProtein, 나트륨: $updatedSodium");
 
       final url = Uri.parse(API.updateUserDiary); // 기록 업데이트 API
       final response = await http.post(
@@ -211,17 +311,14 @@ class _MealDetailDialogState extends State<MealDetailDialog> {
         body: {
           'userid': user.user_id,
           'date': widget.selectedDate.toIso8601String(),
-          'tcal': updatedCalories.toString(),
-          'tcarbs': updatedCarbs.toString(),
-          'tsugar': updatedSugar.toString(),
-          'tfat': updatedFat.toString(),
-          'tprotein': updatedProtein.toString(),
-          'tsodium': updatedSodium.toString(),
+          'tcal': totalCalories.toString(),
+          'tcarbs': totalCarbs.toString(),
+          'tsugar': totalSugar.toString(),
+          'tfat': totalFat.toString(),
+          'tprotein': totalProtein.toString(),
+          'tsodium': totalSodium.toString(),
         },
       );
-
-      print("기록 업데이트 API 응답 상태: ${response.statusCode}");
-      print("기록 업데이트 API 응답 본문: ${response.body}");
 
       if (response.statusCode == 200) {
         final jsonResponse = jsonDecode(response.body);
@@ -233,7 +330,7 @@ class _MealDetailDialogState extends State<MealDetailDialog> {
       print("기록 업데이트 중 오류 발생: $e");
       return false;
     }
-  }*/
+  }  /*
   Future<bool> _updateRecordDB(List<Map<String, dynamic>> updatedFoodInfo) async {
     try {
       User? user = await LoadUser.loadUser();
@@ -290,7 +387,7 @@ class _MealDetailDialogState extends State<MealDetailDialog> {
       return false;
     }
   }
-
+  */
 
 // 식단 삭제 서버 요청
   Future<bool> _deleteMealFromServer() async {

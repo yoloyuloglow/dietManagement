@@ -50,7 +50,7 @@ class _TotalViewState extends State<TotalView> {
     User? user = await LoadUser.loadUser();
 
     if (user == null) {
-      Fluttertoast.showToast(msg: '사용자 정보를 불러올 수 없습니다.');
+      //Fluttertoast.showToast(msg: '사용자 정보를 불러올 수 없습니다.');
       return;
     }
 
@@ -76,7 +76,7 @@ class _TotalViewState extends State<TotalView> {
           setState(() {
             data = []; // 데이터가 없을 경우 초기화
           });
-          Fluttertoast.showToast(msg: '다이어리 정보를 불러올 수 없습니다.');
+          //Fluttertoast.showToast(msg: '다이어리 정보를 불러올 수 없습니다.');
         }
       } else {
         Fluttertoast.showToast(
@@ -86,7 +86,7 @@ class _TotalViewState extends State<TotalView> {
       }
     } catch (e) {
       print('데이터 로드 오류: $e');
-      Fluttertoast.showToast(msg: '데이터 로드 중 오류 발생');
+      //Fluttertoast.showToast(msg: '데이터 로드 중 오류 발생');
     }
   }
 
